@@ -12,7 +12,11 @@ This repository contains a configuration to create an Arch Linux-based rescue im
    - [Packages](#packages)
    - [Kernel Modules](#kernel-modules)
    - [Removed Files](#removed-files)
-3. [Usage](#usage)
+3. [Skeleton Structure](#skeleton-structure)
+  - [/etc/pacman.conf](#etcpacmanconf)
+  - [/etc/resolv.conf](#etcresolvconf)
+  - [/etc/systemd/system-preset/](#etcsystemdsystem-preset)
+4. [Usage](#usage)
 
 ## Overview
 
@@ -165,6 +169,65 @@ Packages=
 - **Tools**: Utilities like `neovim` (text editor), `btop` (system monitoring), `fastfetch` (system info), and `less` (file pager).
 - **Filesystem Tools**: `btrfs-progs` for managing Btrfs.
 - **arch-install-scripts**: Scripts for Arch Linux installation.
+
+## Skeleton Structure
+
+The `/mkosi.skeleton/etc/` directory contains essential configuration files that are copied into the resulting disk image before the building of the image.
+
+### `/etc/pacman.conf`
+
+```ini
+[options]
+HoldPkg     = pacman glibc
+Architecture = auto
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist
+
+[chaotic-aur]
+SigLevel = Optional TrustAll
+Include = /etc/pacman.d/chaotic-mirrorlist
+```
+
+`multilib` & the `chaotic-aur` have been enabled
+
+### `/etc/resolv.conf`
+
+```bash
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+```
+
+Google’s public DNS servers are used.
+
+### `/etc/systemd/system-preset/`
+
+This directory contains systemd preset files, which define which system services should be enabled or disabled by default.
+
+#### `10-rescue-disable-unneeded.preset`
+
+This preset file disables unneeded services when entering rescue mode:
+
+```ini
+disable *
+enable rescue.service
+```
+
+#### `10-rescue-networking.preset`
+
+This preset ensures that networking is enabled in rescue mode:
+
+```ini
+enable systemd-networkd.service
+enable systemd-resolved.service
+```
+
+#### `10-timesync.preset`
+
+This preset ensures that time synchronization is enabled:
+
+```ini
+enable systemd-timesyncd.service
 
 ## Usage
 
